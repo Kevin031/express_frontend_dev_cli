@@ -9,10 +9,11 @@ var
   cssnano = require('gulp-cssnano'),
   uglify = require('gulp-uglify'),
   rename = require('gulp-rename'),
-  config = require('./config'),
+  config = require('./config/config-dev'),
   path = require('path'),
   gutil = require('gulp-util'),
-  pug = require('gulp-pug2')
+	pug = require('gulp-pug2'),
+	ejs = require('gulp-ejs')
 
 /**
  * 路径配置
@@ -29,13 +30,14 @@ var
 
 var
   STATIC_PATH = './generate/',
-  PUG_PATH = './views/'
+	PUG_PATH = './views_pug/',
+	EJS_PATH = './views_ejs/'
 
 /**
  * 页面静态化配置
  */
 var configPages = require('./config/config-pages')
-var PUG_LIST = configPages.slice(0)
+var ENGINE_LIST = configPages.slice(0)
 
 var USEMIN_HTML_LIST = []
 configPages.forEach(function (item) {
@@ -43,34 +45,60 @@ configPages.forEach(function (item) {
 })
 
 /**
- * PUG 编译任务
+ * HTML模板编译任务
  */
 var staticTasks = []
-PUG_LIST.forEach(function (tpl) {
-  var task = 'static-' + tpl.page + '.pug'
-  staticTasks.push(task)
+var engine = require('./config/config-dev').engine
 
-  gulp.task(task, function () {
+console.log('your html engine language is ' + engine + '.')
 
-    // pug模板路径
-    var fileName = PUG_PATH + tpl.page + '.pug'
+if (engine === 'pug') { // PUG模板
+	ENGINE_LIST.forEach(function (tpl) {
+		var task = 'static-' + tpl.page + '.pug'
+		staticTasks.push(task)
+	
+		gulp.task(task, function () {
+	
+			// pug模板路径
+			var fileName = PUG_PATH + tpl.page + '.pug'
+	
+			// 文件相对路径
+			var dir = path.dirname(tpl.page)
+		
+			// 编译
+			gulp.src(fileName)
+				.pipe(pug(tpl.data).on('error', gutil.log))
+				// .pipe(pug({
+				//   pretty: true
+				//   // tpl.datanpm i gulp-pug2
+				// }).on('error', gutil.log))
+				.pipe(rename({
+					extname: '.html'
+				}))
+				.pipe(gulp.dest(STATIC_PATH + dir))
+		})
+	})
+} else if (engine === 'ejs') { // EJS模板
+	ENGINE_LIST.forEach(function (tpl) {
+		var task = 'static-' + tpl.page + '.ejs'
+			staticTasks.push(task)
+			gulp.task(task, function() {
+				// ejs 模板路径
+				var fileName = EJS_PATH + tpl.page + '.ejs'
 
-    // 文件相对路径
-    var dir = path.dirname(tpl.page)
-  
-    // 编译
-    gulp.src(fileName)
-      .pipe(pug(tpl.data).on('error', gutil.log))
-      // .pipe(pug({
-      //   pretty: true
-      //   // tpl.datanpm i gulp-pug2
-      // }).on('error', gutil.log))
-      .pipe(rename({
-        extname: '.html'
-      }))
-      .pipe(gulp.dest(STATIC_PATH + dir))
-  })
-})
+				// 文件相对路径
+				var dir = path.dirname(tpl.page)
+
+				// 编译ejs
+				gulp.src(fileName)
+					.pipe(ejs(tpl.data).on('error', gutil.log))
+					.pipe(rename({
+						extname: '.html'
+					}))
+					.pipe(gulp.dest(STATIC_PATH + dir))
+			})
+	})
+}
 
 gulp.task('static', staticTasks, function () {
   console.info('Static html finished.'.green)

@@ -27,7 +27,7 @@ module.exports = {
 ```bash
 npm run dist
 ```
-打包压缩后的文件会存放在 ``public`` 文件夹下。
+打包压缩后的 ``js`` 和 ``css`` 文件会存放在 ``public`` 文件夹下。
 
 ## 静态化(static)
 ```bash

@@ -4,16 +4,16 @@ var
 	chalk = require('chalk'),
 	request = require('request'),
 	express = require('express'),
-	config = require('./config')
+	config = require('./config/config-dev')
 
 var 
 	app = express(),
-	router = express.Router(),
-	viewPath = path.join(__dirname, 'views')
+	router = express.Router()
+	viewPath = path.join(__dirname, 'views_' + config.engine)
 
 // view engine setup
 app.set('views', path.join(viewPath))
-app.set('view engine', 'pug')
+app.set('view engine', config.engine)
 
 /**
  * 静态资源
